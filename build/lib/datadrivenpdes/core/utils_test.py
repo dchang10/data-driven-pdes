@@ -13,24 +13,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-from datadrivenpdes.core import builders
-import tensorflow as tf
-
+from datadrivenpdes.core import grids
+from datadrivenpdes.core import states
+from datadrivenpdes.core import utils
 from absl.testing import absltest
 
-# Use eager mode by default
-tf.compat.v1.enable_eager_execution()
 
+class UtilsTest(absltest.TestCase):
 
-class BuildersTest(absltest.TestCase):
+  def test_component_name(self):
+    concentration = states.StateDefinition(
+        'concentration', (), (0, 0, 0), (0, 0))
+    grid = grids.Grid.from_period(32, 0.1)
+    self.assertEqual(utils.component_name(concentration, grid),
+                     'concentration/0_0_0/0_0/32_32')
 
-  def test_unstack_dict(self):
-    tensors = {'a': tf.range(3), 'b': tf.range(3, 6)}
-    unstacked = builders.unstack_dict(tensors, num=3)
-    to_numpy = lambda value: {k: v.numpy() for k, v in value.items()}
-    actual = [to_numpy(value) for value in unstacked]
-    expected = [{'a': 0, 'b': 3}, {'a': 1, 'b': 4}, {'a': 2, 'b': 5}]
-    self.assertEqual(expected, actual)
+    x_quantity = states.StateDefinition(
+        'quantity', (states.Dimension.X,), (1, 2, 3), (1, 0))
+    self.assertEqual(utils.component_name(x_quantity), 'x_quantity/1_2_3/1_0')
 
 
 if __name__ == '__main__':
